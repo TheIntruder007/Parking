@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Parking - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="dashboard">
+<header class="navbar">
+    <div class="nav-brand">IoT Smart Parking</div>
+    <nav class="nav-links">
+        <a href="slots.html">Slots</a>
+        <a href="gate.html">Gate</a>
+        <button id="logoutBtn" class="btn btn-ghost">Logout</button>
+    </nav>
+</header>
+
+<main class="main-container">
+    <section class="dashboard-header">
+        <div>
+            <h1>Hello, <span id="userNameDisplay">User</span></h1>
+            <p class="subtitle">Manage your vehicles, wallet, and parking bookings.</p>
+        </div>
+        <div class="wallet-card">
+            <div class="wallet-label">Wallet Balance</div>
+            <div class="wallet-amount">₹ <span id="walletBalance">0</span></div>
+            <form id="rechargeForm" class="wallet-form">
+                <input type="number" id="rechargeAmount" min="1" placeholder="Enter amount" required>
+                <button type="submit" class="btn btn-primary">Recharge</button>
+            </form>
+            <div id="walletMessage" class="form-message small"></div>
+        </div>
+    </section>
+
+    <section class="grid-2">
+        <div class="card">
+            <h2>Your Vehicles</h2>
+            <p class="subtitle">Add your vehicles to book parking slots.</p>
+            <form id="vehicleForm" class="form inline-form">
+                <input type="text" id="vehicleNumber" placeholder="KA01AB1234" required>
+                <select id="vehicleType" required>
+                    <option value="">Type</option>
+                    <option value="2W">2-Wheeler</option>
+                    <option value="4W">4-Wheeler</option>
+                </select>
+                <button type="submit" class="btn btn-secondary">Add</button>
+            </form>
+            <div id="vehicleMessage" class="form-message small"></div>
+            <table class="table" id="vehiclesTable">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Vehicle Number</th>
+                    <th>Type</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Filled by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Book Parking Slot</h2>
+            <p class="subtitle">Select vehicle and duration to book.</p>
+            <form id="bookingForm" class="form">
+                <div class="form-group">
+                    <label for="bookingVehicleSelect">Vehicle</label>
+                    <select id="bookingVehicleSelect" required>
+                        <option value="">Select your vehicle</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bookingDuration">Duration (hours)</label>
+                    <select id="bookingDuration" required>
+                        <option value="1">1 hour</option>
+                        <option value="2">2 hours</option>
+                        <option value="3">3 hours</option>
+                        <option value="4">4 hours</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">Book Slot</button>
+            </form>
+            <div id="bookingMessage" class="form-message"></div>
+
+            <div id="bookingDetails" class="booking-details hidden">
+                <h3>Booking Summary</h3>
+                <div class="booking-grid">
+                    <div>
+                        <p><strong>Token:</strong> <span id="bookingToken"></span></p>
+                        <p><strong>Area:</strong> <span id="bookingArea"></span></p>
+                        <p><strong>Slot:</strong> <span id="bookingSlot"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>Amount:</strong> ₹ <span id="bookingAmount"></span></p>
+                        <p><strong>Start:</strong> <span id="bookingStart"></span></p>
+                        <p><strong>End:</strong> <span id="bookingEnd"></span></p>
+                    </div>
+                </div>
+                <div class="qr-section">
+                    <h4>Your QR Code</h4>
+                    <div id="qrcode"></div>
+                    <p class="qr-note">Show this QR / token at the gate for access.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Last Booking</h2>
+        <p class="subtitle">Quick view of your latest booking.</p>
+        <div id="lastBookingInfo" class="last-booking">
+            <!-- Filled by JS -->
+        </div>
+    </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

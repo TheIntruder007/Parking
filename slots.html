@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Parking - Slots Status</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="slots">
+<header class="navbar">
+    <div class="nav-brand">IoT Smart Parking</div>
+    <nav class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="gate.html">Gate</a>
+        <button id="logoutBtn" class="btn btn-ghost">Logout</button>
+    </nav>
+</header>
+
+<main class="main-container">
+    <section class="card">
+        <div class="flex-between">
+            <div>
+                <h1>Slots Status</h1>
+                <p class="subtitle">Live status of all parking slots.</p>
+            </div>
+            <div class="legend">
+                <span class="badge badge-free">Free</span>
+                <span class="badge badge-reserved">Reserved</span>
+                <span class="badge badge-occupied">Occupied</span>
+            </div>
+        </div>
+
+        <table class="table" id="slotsTable">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Slot Code</th>
+                <th>Area</th>
+                <th>Vehicle Type</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Filled by JS -->
+            </tbody>
+        </table>
+        <p class="subtitle small">Auto-refreshes every 5 seconds.</p>
+    </section>
+</main>
+
+<script src="db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

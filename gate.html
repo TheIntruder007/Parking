@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Parking - Gate Simulation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="gate">
+<header class="navbar">
+    <div class="nav-brand">IoT Smart Parking</div>
+    <nav class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="slots.html">Slots</a>
+        <button id="logoutBtn" class="btn btn-ghost">Logout</button>
+    </nav>
+</header>
+
+<main class="main-container">
+    <section class="card gate-card">
+        <h1>Gate Access Simulation</h1>
+        <p class="subtitle">Enter or scan the customer's booking token.</p>
+
+        <form id="gateForm" class="form">
+            <div class="form-group">
+                <label for="gateToken">Booking Token</label>
+                <input type="text" id="gateToken" placeholder="Paste or scan token" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Validate Token</button>
+        </form>
+
+        <div id="gateResult" class="gate-result">
+            <!-- Result message -->
+        </div>
+    </section>
+</main>
+
+<script src="db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
