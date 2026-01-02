@@ -1,4 +1,5 @@
-const API_BASE = ""; // same origin
+const API_BASE = "/api";
+ // same origin
 
 async function apiRequest(path, method = "GET", data = null) {
     const options = {

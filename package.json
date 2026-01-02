@@ -1,18 +1,9 @@
 {
-  "name": "parking",
+  "name": "smart-parking",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": true,
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^5.2.1",
-    "mysql": "^2.18.1"
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   }
 }
