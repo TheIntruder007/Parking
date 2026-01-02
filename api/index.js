@@ -3,19 +3,27 @@ const cors = require("cors");
 
 const app = express();
 
-// ================= MIDDLEWARE =================
-app.use(cors());
+// ================= CORS FIX =================
+app.use(
+  cors({
+    origin: [
+      "https://parking-pearl-tau.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  })
+);
+
 app.use(express.json());
 
-// ================= IN-MEMORY STORE (TEMP) =================
-// Later you can replace this with MongoDB
+// ================= IN-MEMORY DATA =================
 const users = [];
 const vehicles = [];
 const bookings = [];
 
-// ================= HEALTH CHECK =================
+// ================= HEALTH =================
 app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "API is running" });
+  res.json({ success: true, message: "API running on Vercel" });
 });
 
 // ================= AUTH =================
@@ -25,33 +33,27 @@ app.post("/api/register", (req, res) => {
   if (!name || !phone || !email || !password) {
     return res.status(400).json({
       success: false,
-      message: "All fields are required"
+      message: "All fields required"
     });
   }
 
-  const exists = users.find(u => u.email === email);
-  if (exists) {
+  if (users.find(u => u.email === email)) {
     return res.status(400).json({
       success: false,
       message: "User already exists"
     });
   }
 
-  const user = {
+  users.push({
     id: Date.now().toString(),
     name,
     phone,
     email,
     password,
     wallet: 0
-  };
-
-  users.push(user);
-
-  res.json({
-    success: true,
-    message: "Registration successful"
   });
+
+  res.json({ success: true });
 });
 
 app.post("/api/login", (req, res) => {
@@ -82,108 +84,64 @@ app.post("/api/wallet/recharge", (req, res) => {
 
   const user = users.find(u => u.id === userId);
   if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found"
-    });
+    return res.status(404).json({ success: false });
   }
 
   user.wallet += Number(amount);
 
-  res.json({
-    success: true,
-    wallet: user.wallet
-  });
+  res.json({ success: true, wallet: user.wallet });
 });
 
 // ================= VEHICLES =================
 app.post("/api/vehicle/add", (req, res) => {
   const { userId, number, type } = req.body;
 
-  if (!userId || !number || !type) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing fields"
-    });
-  }
-
   vehicles.push({ userId, number, type });
-
-  res.json({
-    success: true,
-    message: "Vehicle added"
-  });
+  res.json({ success: true });
 });
 
 app.get("/api/vehicle/list", (req, res) => {
-  const { userId } = req.query;
-
-  const list = vehicles.filter(v => v.userId === userId);
-
-  res.json({
-    success: true,
-    vehicles: list
-  });
+  const list = vehicles.filter(v => v.userId === req.query.userId);
+  res.json({ success: true, vehicles: list });
 });
 
 // ================= BOOKINGS =================
 app.post("/api/book-slot", (req, res) => {
-  const { userId, vehicle, duration } = req.body;
-
-  if (!userId || !vehicle || !duration) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing booking data"
-    });
-  }
-
   const booking = {
     id: "BK-" + Math.random().toString(36).substr(2, 8).toUpperCase(),
     area: "C",
     slot: "C1",
     amount: 50,
     start: new Date(),
-    end: new Date(Date.now() + duration * 3600000)
+    end: new Date(Date.now() + req.body.duration * 3600000)
   };
 
-  bookings.push({ userId, booking });
+  bookings.push({ userId: req.body.userId, booking });
 
-  res.json({
-    success: true,
-    booking
-  });
+  res.json({ success: true, booking });
 });
 
 app.get("/api/booking/last", (req, res) => {
-  const { userId } = req.query;
-
-  const userBookings = bookings.filter(b => b.userId === userId);
-  const last = userBookings[userBookings.length - 1];
+  const userBookings = bookings.filter(
+    b => b.userId === req.query.userId
+  );
 
   res.json({
     success: true,
-    booking: last ? last.booking : null
+    booking: userBookings.at(-1)?.booking || null
   });
 });
 
-// ================= ESP32 GATE VERIFY (READY) =================
+// ================= GATE (ESP32) =================
 app.post("/api/gate/verify", (req, res) => {
-  const { token } = req.body;
-
-  const valid = bookings.find(b => b.booking.id === token);
+  const valid = bookings.find(b => b.booking.id === req.body.token);
 
   if (!valid) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid QR token"
-    });
+    return res.status(401).json({ success: false });
   }
 
-  res.json({
-    success: true,
-    message: "Gate opened"
-  });
+  res.json({ success: true, message: "Gate opened" });
 });
 
-// ================= EXPORT FOR VERCEL =================
+// ================= EXPORT =================
 module.exports = app;
