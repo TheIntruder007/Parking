@@ -1,5 +1,6 @@
 // ================== API CONFIG ==================
-const API_BASE = "/api";
+// Use environment variable for production, fallback for development
+const API_BASE = process.env.API_BASE_URL || "https://your-backend-domain.vercel.app";
 
 // ================== API HELPER ==================
 async function apiRequest(path, method = "GET", data = null) {
@@ -8,7 +9,8 @@ async function apiRequest(path, method = "GET", data = null) {
       method,
       headers: {
         "Content-Type": "application/json"
-      }
+      },
+      credentials: 'include'  // Important for CORS with credentials
     };
 
     if (data) {
@@ -25,7 +27,7 @@ async function apiRequest(path, method = "GET", data = null) {
     }
 
     if (!response.ok) {
-      throw new Error(json.message || "Server error");
+      throw new Error(json.message || `Server error: ${response.status}`);
     }
 
     return json;
@@ -33,39 +35,57 @@ async function apiRequest(path, method = "GET", data = null) {
     console.error("API Error:", error.message);
     return {
       success: false,
-      message: "Error contacting server"
+      message: error.message || "Error contacting server"
     };
   }
 }
 
 // ================== AUTH ==================
 async function registerUser(data) {
-  return apiRequest("/register", "POST", data);
+  return apiRequest("/api/register", "POST", data);
 }
 
 async function loginUser(data) {
-  return apiRequest("/login", "POST", data);
+  return apiRequest("/api/login", "POST", data);
 }
 
 // ================== WALLET ==================
-async function rechargeWallet(amount) {
-  return apiRequest("/wallet/recharge", "POST", { amount });
+async function rechargeWallet(userId, amount) {
+  return apiRequest("/api/wallet/recharge", "POST", { userId, amount });
 }
 
 // ================== VEHICLES ==================
 async function addVehicle(vehicle) {
-  return apiRequest("/vehicle/add", "POST", vehicle);
+  return apiRequest("/api/vehicle/add", "POST", vehicle);
 }
 
-async function getVehicles() {
-  return apiRequest("/vehicle/list", "GET");
+async function getVehicles(userId) {
+  return apiRequest(`/api/vehicle/list?userId=${userId}`, "GET");
 }
 
 // ================== BOOKINGS ==================
 async function bookSlot(payload) {
-  return apiRequest("/book-slot", "POST", payload);
+  return apiRequest("/api/book-slot", "POST", payload);
 }
 
-async function lastBooking() {
-  return apiRequest("/booking/last", "GET");
+async function lastBooking(userId) {
+  return apiRequest(`/api/booking/last?userId=${userId}`, "GET");
 }
+
+// ================== GATE ==================
+async function verifyGateToken(token) {
+  return apiRequest("/api/gate/verify", "POST", { token });
+}
+
+// Export all functions
+module.exports = {
+  registerUser,
+  loginUser,
+  rechargeWallet,
+  addVehicle,
+  getVehicles,
+  bookSlot,
+  lastBooking,
+  verifyGateToken,
+  API_BASE  // Export for debugging
+};

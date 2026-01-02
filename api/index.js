@@ -7,8 +7,10 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://parking-pearl-tau.vercel.app"
-    ],
+      "https://parking-pearl-tau.vercel.app",
+      "http://localhost:3000",
+      process.env.FRONTEND_URL // Optional: use env variable
+    ].filter(Boolean), // Remove any undefined/null values
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   })
@@ -23,7 +25,7 @@ const bookings = [];
 
 // ================= HEALTH =================
 app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "API running on Vercel" });
+  res.json({ success: true, message: "API running on Vercel", timestamp: new Date().toISOString() });
 });
 
 // ================= AUTH =================
@@ -84,7 +86,7 @@ app.post("/api/wallet/recharge", (req, res) => {
 
   const user = users.find(u => u.id === userId);
   if (!user) {
-    return res.status(404).json({ success: false });
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
   user.wallet += Number(amount);
@@ -96,35 +98,53 @@ app.post("/api/wallet/recharge", (req, res) => {
 app.post("/api/vehicle/add", (req, res) => {
   const { userId, number, type } = req.body;
 
+  if (!userId || !number || !type) {
+    return res.status(400).json({ success: false, message: "All fields required" });
+  }
+
   vehicles.push({ userId, number, type });
-  res.json({ success: true });
+  res.json({ success: true, message: "Vehicle added successfully" });
 });
 
 app.get("/api/vehicle/list", (req, res) => {
-  const list = vehicles.filter(v => v.userId === req.query.userId);
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ success: false, message: "User ID required" });
+  }
+
+  const list = vehicles.filter(v => v.userId === userId);
   res.json({ success: true, vehicles: list });
 });
 
 // ================= BOOKINGS =================
 app.post("/api/book-slot", (req, res) => {
+  const { userId, duration } = req.body;
+  
+  if (!userId || !duration) {
+    return res.status(400).json({ success: false, message: "User ID and duration required" });
+  }
+
   const booking = {
     id: "BK-" + Math.random().toString(36).substr(2, 8).toUpperCase(),
     area: "C",
     slot: "C1",
     amount: 50,
-    start: new Date(),
-    end: new Date(Date.now() + req.body.duration * 3600000)
+    start: new Date().toISOString(),
+    end: new Date(Date.now() + duration * 3600000).toISOString()
   };
 
-  bookings.push({ userId: req.body.userId, booking });
+  bookings.push({ userId, booking });
 
   res.json({ success: true, booking });
 });
 
 app.get("/api/booking/last", (req, res) => {
-  const userBookings = bookings.filter(
-    b => b.userId === req.query.userId
-  );
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ success: false, message: "User ID required" });
+  }
+
+  const userBookings = bookings.filter(b => b.userId === userId);
 
   res.json({
     success: true,
@@ -134,14 +154,45 @@ app.get("/api/booking/last", (req, res) => {
 
 // ================= GATE (ESP32) =================
 app.post("/api/gate/verify", (req, res) => {
-  const valid = bookings.find(b => b.booking.id === req.body.token);
+  const { token } = req.body;
+  
+  if (!token) {
+    return res.status(400).json({ success: false, message: "Token required" });
+  }
+
+  const valid = bookings.find(b => b.booking.id === token);
 
   if (!valid) {
-    return res.status(401).json({ success: false });
+    return res.status(401).json({ success: false, message: "Invalid token" });
   }
 
   res.json({ success: true, message: "Gate opened" });
 });
 
-// ================= EXPORT =================
+// ================= ROOT ENDPOINT =================
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Smart Parking API is running",
+    endpoints: [
+      "/api/health - GET - Health check",
+      "/api/register - POST - Register user",
+      "/api/login - POST - Login user",
+      "/api/wallet/recharge - POST - Recharge wallet",
+      "/api/vehicle/add - POST - Add vehicle",
+      "/api/vehicle/list - GET - List vehicles",
+      "/api/book-slot - POST - Book parking slot",
+      "/api/booking/last - GET - Get last booking",
+      "/api/gate/verify - POST - Verify gate token"
+    ]
+  });
+});
+
+// ================= ERROR HANDLING =================
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Endpoint not found" });
+});
+
+// ================= EXPORT FOR VERCEL =================
+// Export for Vercel serverless function
 module.exports = app;
