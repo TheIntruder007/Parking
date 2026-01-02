@@ -1,114 +1,55 @@
-// ===============================
-// API CONFIG (VERCEL / LOCAL)
-// ===============================
-const API_BASE = ""; 
-// Keep empty → same domain
-// Localhost: http://localhost:3000
-// Vercel: https://your-project.vercel.app
+// ================== API CONFIG ==================
+const API_BASE = window.location.origin;
 
-// ===============================
-// GENERIC API REQUEST HELPER
-// ===============================
+// ================== API HELPER ==================
 async function apiRequest(path, method = "GET", data = null) {
   try {
     const options = {
       method,
-      headers: {
-        "Content-Type": "application/json"
-      }
+      headers: { "Content-Type": "application/json" }
     };
 
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
+    if (data) options.body = JSON.stringify(data);
 
-    const response = await fetch(API_BASE + path, options);
-    const result = await response.json();
+    const res = await fetch(`${API_BASE}${path}`, options);
+    const json = await res.json();
 
-    return result;
-  } catch (error) {
-    console.error("API Error:", error);
-    return { success: false, message: "Server unreachable" };
+    if (!res.ok) throw new Error(json.message || "Server error");
+
+    return json;
+  } catch (err) {
+    return { success: false, message: "Error contacting server" };
   }
 }
 
-// ===============================
-// AUTH HELPERS
-// ===============================
-function setUserSession(user) {
-  localStorage.setItem("userId", user.id);
-  localStorage.setItem("userName", user.name);
+// ================== AUTH ==================
+async function registerUser(data) {
+  return apiRequest("/api/register", "POST", data);
 }
 
-function getUserSession() {
-  return {
-    id: localStorage.getItem("userId"),
-    name: localStorage.getItem("userName")
-  };
+async function loginUser(data) {
+  return apiRequest("/api/login", "POST", data);
 }
 
-function clearUserSession() {
-  localStorage.removeItem("userId");
-  localStorage.removeItem("userName");
+// ================== WALLET ==================
+async function rechargeWallet(amount) {
+  return apiRequest("/api/wallet/recharge", "POST", { amount });
 }
 
-// ===============================
-// BOOK PARKING SLOT
-// ===============================
-async function bookParkingSlot(vehicle, duration) {
-  return await apiRequest("/api/book-slot", "POST", {
-    vehicle,
-    duration
-  });
+// ================== VEHICLES ==================
+async function addVehicle(vehicle) {
+  return apiRequest("/api/vehicle/add", "POST", vehicle);
 }
 
-// ===============================
-// HEALTH CHECK (OPTIONAL)
-// ===============================
-async function checkServer() {
-  return await apiRequest("/api/health");
+async function getVehicles() {
+  return apiRequest("/api/vehicle/list");
 }
 
-// ===============================
-// WALLET (FRONTEND MOCK)
-// ===============================
-function getWalletBalance() {
-  return Number(localStorage.getItem("wallet") || 0);
+// ================== BOOKINGS ==================
+async function bookSlot(payload) {
+  return apiRequest("/api/book-slot", "POST", payload);
 }
 
-function updateWallet(amount) {
-  localStorage.setItem("wallet", amount);
-}
-
-// ===============================
-// QR CODE DATA GENERATOR
-// ===============================
-function generateQRData(booking) {
-  return JSON.stringify({
-    token: booking.token,
-    slot: booking.slot,
-    area: booking.area,
-    vehicle: booking.vehicle,
-    start: booking.start,
-    end: booking.end
-  });
-}
-
-// ===============================
-// PROTECT DASHBOARD PAGE
-// ===============================
-function requireAuth() {
-  const user = getUserSession();
-  if (!user.id) {
-    window.location.href = "index.html";
-  }
-  return user;
-}
-
-// ===============================
-// LOGOUT
-// ===============================
-function logout() {
-  clearUserSession();
-  window.location.href = "index.html";
+async function lastBooking() {
+  return apiRequest("/api/booking/last");
 }
