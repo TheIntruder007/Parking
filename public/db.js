@@ -1,72 +1,114 @@
-const API_BASE = "/api";
- // same origin
+// ===============================
+// API CONFIG (VERCEL / LOCAL)
+// ===============================
+const API_BASE = ""; 
+// Keep empty → same domain
+// Localhost: http://localhost:3000
+// Vercel: https://your-project.vercel.app
 
+// ===============================
+// GENERIC API REQUEST HELPER
+// ===============================
 async function apiRequest(path, method = "GET", data = null) {
+  try {
     const options = {
-        method,
-        headers: {
-            "Content-Type": "application/json"
-        }
+      method,
+      headers: {
+        "Content-Type": "application/json"
+      }
     };
+
     if (data) {
-        options.body = JSON.stringify(data);
+      options.body = JSON.stringify(data);
     }
 
-    const res = await fetch(API_BASE + path, options);
-    let json;
-    try {
-        json = await res.json();
-    } catch (e) {
-        json = { success: false, message: "Invalid server response" };
-    }
-    if (!res.ok && json && !json.success) {
-        // still return json; caller will handle
-    }
-    return json;
+    const response = await fetch(API_BASE + path, options);
+    const result = await response.json();
+
+    return result;
+  } catch (error) {
+    console.error("API Error:", error);
+    return { success: false, message: "Server unreachable" };
+  }
 }
 
-// Auth
-async function register(userData) {
-    return apiRequest("/api/register", "POST", userData);
+// ===============================
+// AUTH HELPERS
+// ===============================
+function setUserSession(user) {
+  localStorage.setItem("userId", user.id);
+  localStorage.setItem("userName", user.name);
 }
 
-async function login(credentials) {
-    return apiRequest("/api/login", "POST", credentials);
+function getUserSession() {
+  return {
+    id: localStorage.getItem("userId"),
+    name: localStorage.getItem("userName")
+  };
 }
 
-// Wallet
-async function getWallet(userId) {
-    return apiRequest(`/api/wallet/${encodeURIComponent(userId)}`, "GET");
+function clearUserSession() {
+  localStorage.removeItem("userId");
+  localStorage.removeItem("userName");
 }
 
-async function rechargeWallet(userId, amount) {
-    return apiRequest("/api/wallet/recharge", "POST", { userId, amount });
+// ===============================
+// BOOK PARKING SLOT
+// ===============================
+async function bookParkingSlot(vehicle, duration) {
+  return await apiRequest("/api/book-slot", "POST", {
+    vehicle,
+    duration
+  });
 }
 
-// Vehicles
-async function createVehicle(data) {
-    return apiRequest("/api/vehicles", "POST", data);
+// ===============================
+// HEALTH CHECK (OPTIONAL)
+// ===============================
+async function checkServer() {
+  return await apiRequest("/api/health");
 }
 
-async function getVehicles(userId) {
-    return apiRequest(`/api/vehicles/${encodeURIComponent(userId)}`, "GET");
+// ===============================
+// WALLET (FRONTEND MOCK)
+// ===============================
+function getWalletBalance() {
+  return Number(localStorage.getItem("wallet") || 0);
 }
 
-// Bookings
-async function createBooking(data) {
-    return apiRequest("/api/bookings/create", "POST", data);
+function updateWallet(amount) {
+  localStorage.setItem("wallet", amount);
 }
 
-async function getBookings(userId) {
-    return apiRequest(`/api/bookings/${encodeURIComponent(userId)}`, "GET");
+// ===============================
+// QR CODE DATA GENERATOR
+// ===============================
+function generateQRData(booking) {
+  return JSON.stringify({
+    token: booking.token,
+    slot: booking.slot,
+    area: booking.area,
+    vehicle: booking.vehicle,
+    start: booking.start,
+    end: booking.end
+  });
 }
 
-// QR Validation
-async function validateQR(bookingToken) {
-    return apiRequest("/api/qr/validate", "POST", { bookingToken });
+// ===============================
+// PROTECT DASHBOARD PAGE
+// ===============================
+function requireAuth() {
+  const user = getUserSession();
+  if (!user.id) {
+    window.location.href = "index.html";
+  }
+  return user;
 }
 
-// Slots
-async function getSlots() {
-    return apiRequest("/api/slots", "GET");
+// ===============================
+// LOGOUT
+// ===============================
+function logout() {
+  clearUserSession();
+  window.location.href = "index.html";
 }
