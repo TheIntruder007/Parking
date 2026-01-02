@@ -1,3 +1,15 @@
+// Use the global parkingAPI instance
+const api = window.parkingAPI;
+
+// Example usage in your existing app.js:
+// Replace your fetch calls with api methods
+
+// Old way:
+// fetch('/api/login', { method: 'POST', ... })
+
+// New way:
+// const result = await api.login({ email, password });
+
 // ===== COMMON UTILITIES =====
 function showMessage(element, msg, type = "") {
     if (!element) return;
